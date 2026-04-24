@@ -28,7 +28,17 @@ python3 src/vault.py import "" shadow.vault .env --hw-bind
 ```
 *Note: You can now safely delete your `.env` file.*
 
-### 3. Activate the Hook
+### 3. Update or Add New Secrets
+You can add more secrets to an existing vault at any time:
+```bash
+# Add a single secret via JSON
+python3 src/vault.py update "" shadow.vault '{"NEW_KEY": "new_value"}' --hw-bind
+
+# Or import from another .env file
+python3 src/vault.py import "" shadow.vault additional.env --hw-bind
+```
+
+### 4. Activate the Hook
 Copy the hook trigger to your Python environment's `site-packages`:
 ```bash
 cp src/zzz_guardian.pth $(python3 -m site --user-site)
