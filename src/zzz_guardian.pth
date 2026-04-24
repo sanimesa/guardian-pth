@@ -1,1 +1,1 @@
-import sys; exec("try:\n    from guardian_pth import hook\n    hook._hydrate_shadow_env()\nexcept Exception: pass")
+import importlib, importlib.util; importlib.util.find_spec("guardian_pth") and importlib.import_module("guardian_pth.hook")._hydrate_shadow_env()
