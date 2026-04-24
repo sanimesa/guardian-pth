@@ -35,9 +35,9 @@ setup(
     author="Shuvro",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    # On Windows, data_files [('', ['...'])] usually drops into the venv root or site-packages
-    # but behaviors vary. We'll use this AND the PostInstallCommand for redundancy.
-    data_files=[('..', ['src/zzz_guardian.pth'])],
+    # We use a post-install hook to place the .pth file instead of data_files
+    # because data_files is unreliable across platforms for .pth injection.
+    # data_files=[('..', ['src/zzz_guardian.pth'])],
     cmdclass={
         'install': PostInstallCommand,
     },
