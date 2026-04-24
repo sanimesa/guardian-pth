@@ -11,30 +11,30 @@ class PostInstallCommand(install):
         install.run(self)
         
         try:
-            # We import here to ensure site is available
+            import os
             import site
             import shutil
             
-            # Use sys.executable to find the current site-packages
-            import sys
-            import os
+            # 1. Determine the actual site-packages root for this install
+            # If it is a venv, it should be in Lib/site-packages
+            # If it is a user install, it uses site.getusersitepackages()
             
-            # Find site-packages for the current environment
-            # This is more robust than site.getsitepackages() in some venvs
-            sp = [p for p in sys.path if 'site-packages' in p and 'venv' in p]
-            if not sp:
-                sp = site.getsitepackages()
+            if self.user:
+                dest_dir = site.getusersitepackages()
+            else:
+                # Standard way to find site-packages in the current environment
+                # We prioritize the one actually used by the current interpreter
+                dest_dir = next((p for p in sys.path if 'site-packages' in p and 'dist-packages' not in p), None)
             
-            if sp:
-                dest_dir = sp[0]
+            if dest_dir and os.path.exists(dest_dir):
                 src_pth = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'zzz_guardian.pth'))
                 dest_pth = os.path.join(dest_dir, 'zzz_guardian.pth')
                 
-                print(f"DEBUG: Deploying hook from {src_pth} to {dest_pth}")
+                print(f"DEBUG: Deploying hook to {dest_pth}")
                 shutil.copyfile(src_pth, dest_pth)
                 print(f"SUCCESS: Hook deployed to {dest_pth}")
             else:
-                print("ERROR: Could not find site-packages directory.")
+                print(f"ERROR: Could not find a valid site-packages directory. sys.path was: {sys.path}")
         except Exception as e:
             print(f"CRITICAL ERROR during .pth deployment: {e}")
 
