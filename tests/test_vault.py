@@ -1,0 +1,49 @@
+import os
+import unittest
+import json
+import shutil
+import tempfile
+from guardian_pth import vault, hook
+
+class TestGuardianVault(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.vault_path = os.path.join(self.test_dir, "test.vault")
+        self.passphrase = "test-pass"
+        self.secrets = {"KEY1": "VAL1", "KEY2": "VAL2"}
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+        if "KEY1" in os.environ: del os.environ["KEY1"]
+        if "KEY2" in os.environ: del os.environ["KEY2"]
+
+    def test_encrypt_decrypt(self):
+        vault.encrypt_secrets(self.passphrase, self.secrets, self.vault_path)
+        decrypted = vault.decrypt_secrets(self.passphrase, self.vault_path)
+        self.assertEqual(self.secrets, decrypted)
+
+    def test_update_vault(self):
+        vault.encrypt_secrets(self.passphrase, self.secrets, self.vault_path)
+        new_secrets = {"KEY3": "VAL3"}
+        vault.update_vault(self.passphrase, self.vault_path, new_secrets)
+        decrypted = vault.decrypt_secrets(self.passphrase, self.vault_path)
+        self.assertEqual(decrypted["KEY3"], "VAL3")
+        self.assertEqual(decrypted["KEY1"], "VAL1")
+
+    def test_hw_binding_consistency(self):
+        # Encrypt with HW binding
+        vault.encrypt_secrets(self.passphrase, self.secrets, self.vault_path, use_hw_binding=True)
+        # Decrypt on same machine should work
+        decrypted = vault.decrypt_secrets(self.passphrase, self.vault_path)
+        self.assertEqual(self.secrets, decrypted)
+
+    def test_hydration(self):
+        vault.encrypt_secrets(self.passphrase, self.secrets, self.vault_path)
+        os.environ["GUARDIAN_VAULT_PATH"] = self.vault_path
+        os.environ["GUARDIAN_VAULT_KEY"] = self.passphrase
+        hook._hydrate_shadow_env()
+        self.assertEqual(os.environ.get("KEY1"), "VAL1")
+        self.assertEqual(os.environ.get("KEY2"), "VAL2")
+
+if __name__ == "__main__":
+    unittest.main()
