@@ -1,21 +1,47 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
-
-# Identify where site-packages is to place the .pth file
+import sys
 from setuptools.command.install import install
+import site
+
+# Custom command to ensure the .pth file is placed correctly if data_files fails in some envs
 class PostInstallCommand(install):
     def run(self):
         install.run(self)
-        # In a real setup, we'd copy guardian.pth to the site-packages root
-        # and src/* to a 'guardian' subdirectory.
+        try:
+            # Determine site-packages destination
+            if self.user:
+                dest = site.getusersitepackages()
+            else:
+                dest = site.getsitepackages()[0]
+            
+            src_pth = os.path.join(os.path.dirname(__file__), 'src', 'zzz_guardian.pth')
+            dest_pth = os.path.join(dest, 'zzz_guardian.pth')
+            
+            print(f"Deploying hook to {dest_pth}")
+            with open(src_pth, 'r') as f:
+                content = f.read()
+            with open(dest_pth, 'w') as f:
+                f.write(content)
+        except Exception as e:
+            print(f"Warning: Could not auto-deploy .pth hook: {e}")
 
 setup(
     name="guardian-pth",
-    version="0.1.0",
+    version="0.2.0",
     description="Stealth environment hydration via .pth hooks",
-    packages=["guardian_pth"],
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    author="Shuvro",
+    packages=find_packages(where="src"),
     package_dir={"": "src"},
+    # data_files is the standard way, but PostInstall handles --user better
+    data_files=[('', ['src/zzz_guardian.pth'])],
+    cmdclass={
+        'install': PostInstallCommand,
+    },
     install_requires=[
-        "cryptography",
+        "cryptography>=42.0.0",
     ],
+    python_requires=">=3.8",
 )

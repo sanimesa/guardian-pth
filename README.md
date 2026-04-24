@@ -17,14 +17,15 @@ Malicious Python packages often use `.pth` files to execute code the moment the 
 ```bash
 git clone https://github.com/sanimesa/guardian-pth
 cd guardian-pth
-pip install -r requirements.txt
+pip install .
 ```
+*Note: The installation automatically deploys the `.pth` hook to your site-packages. No manual copying required.*
 
 ### 2. Create a Hardware-Bound Vault
 Convert your existing `.env` secrets into an encrypted vault locked to your machine:
 ```bash
 # This will create shadow.vault in the current directory
-python3 src/vault.py import "" shadow.vault .env --hw-bind
+python3 src/guardian_pth/vault.py import "" shadow.vault .env --hw-bind
 ```
 *Note: You can now safely delete your `.env` file.*
 
@@ -32,26 +33,21 @@ python3 src/vault.py import "" shadow.vault .env --hw-bind
 You can add more secrets to an existing vault at any time:
 ```bash
 # Add a single secret via JSON
-python3 src/vault.py update "" shadow.vault '{"NEW_KEY": "new_value"}' --hw-bind
+python3 src/guardian_pth/vault.py update "" shadow.vault '{"NEW_KEY": "new_value"}' --hw-bind
 
 # Or import from another .env file
-python3 src/vault.py import "" shadow.vault additional.env --hw-bind
-```
-
-### 4. Activate the Hook
-Copy the hook trigger to your Python environment's `site-packages`:
-```bash
-cp src/zzz_guardian.pth $(python3 -m site --user-site)
+python3 src/guardian_pth/vault.py import "" shadow.vault additional.env --hw-bind
 ```
 
 ### 4. Verify
-Any Python script run in a directory containing `shadow.vault` will now have its environment automatically hydrated without any files being readable by scrapers.
+Any Python script run in a directory containing `shadow.vault` will now have its environment automatically hydrated.
 
 ## Features
+- **Zero-Touch Installation**: Automatically deploys the startup hook.
 - **Zero-Touch Hydration**: No need to call `load_dotenv()` or modify your application code.
 - **Relative Path Support**: Automatically looks for `shadow.vault` in the current working directory.
 - **Hardware Binding**: Semi-immutable machine properties (Linux machine-id, etc.) serve as the decryption key.
-- **Migration Utility**: easily import existing `.env` files.
+- **Migration Utility**: Easily import existing `.env` files.
 
 ---
 *Developed by Shuvro & Paprika 🌶️*
