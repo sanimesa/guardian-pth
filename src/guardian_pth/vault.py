@@ -8,17 +8,26 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 def get_machine_fingerprint():
-    """Generates a hardware-bound fingerprint."""
-    def _get_linux_machine_id():
+    """Generates a hardware-bound fingerprint (Linux/Windows/macOS)."""
+    def _get_id():
         try:
-            for p in ["/etc/machine-id", "/var/lib/dbus/machine-id"]:
-                if os.path.exists(p):
-                    with open(p, "r") as f:
-                        return f.read().strip()
+            if platform.system() == "Linux":
+                for p in ["/etc/machine-id", "/var/lib/dbus/machine-id"]:
+                    if os.path.exists(p):
+                        with open(p, "r") as f: return f.read().strip()
+            elif platform.system() == "Windows":
+                # Get UUID via PowerShell
+                cmd = "powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID"
+                return subprocess.check_output(cmd, shell=True).decode().strip()
+            elif platform.system() == "Darwin":
+                # Get UUID via ioreg
+                cmd = "ioreg -rd1 -c IOPlatformExpertDevice | grep IOPlatformUUID"
+                res = subprocess.check_output(cmd, shell=True).decode()
+                return res.split('"')[-2]
         except: pass
         return None
 
-    components = [platform.node(), platform.system(), platform.machine(), _get_linux_machine_id()]
+    components = [platform.node(), platform.system(), platform.machine(), _get_id()]
     raw_id = "|".join([str(c) for c in components if c])
     return hashlib.sha256(raw_id.encode()).hexdigest()
 
