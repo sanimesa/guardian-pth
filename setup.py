@@ -30,7 +30,7 @@ setup(
     name="guardian-pth",
     version="0.2.0",
     description="Stealth environment hydration via .pth hooks",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="Shuvro",
     packages=find_packages(where="src"),
