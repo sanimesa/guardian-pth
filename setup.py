@@ -28,15 +28,16 @@ class PostInstallCommand(install):
 
 setup(
     name="guardian-pth",
-    version="0.2.0",
+    version="0.2.1",
     description="Stealth environment hydration via .pth hooks",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="Shuvro",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    # data_files is the standard way, but PostInstall handles --user better
-    data_files=[('', ['src/zzz_guardian.pth'])],
+    # On Windows, data_files [('', ['...'])] usually drops into the venv root or site-packages
+    # but behaviors vary. We'll use this AND the PostInstallCommand for redundancy.
+    data_files=[('..', ['src/zzz_guardian.pth'])],
     cmdclass={
         'install': PostInstallCommand,
     },
