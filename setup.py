@@ -4,27 +4,39 @@ import sys
 from setuptools.command.install import install
 import site
 
-# Custom command to ensure the .pth file is placed correctly if data_files fails in some envs
+# Custom command to ensure the .pth file is placed correctly
 class PostInstallCommand(install):
     def run(self):
+        # We need to run the standard install first
         install.run(self)
+        
         try:
-            # Determine site-packages destination
-            if self.user:
-                dest = site.getusersitepackages()
+            # We import here to ensure site is available
+            import site
+            import shutil
+            
+            # Use sys.executable to find the current site-packages
+            import sys
+            import os
+            
+            # Find site-packages for the current environment
+            # This is more robust than site.getsitepackages() in some venvs
+            sp = [p for p in sys.path if 'site-packages' in p and 'venv' in p]
+            if not sp:
+                sp = site.getsitepackages()
+            
+            if sp:
+                dest_dir = sp[0]
+                src_pth = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'zzz_guardian.pth'))
+                dest_pth = os.path.join(dest_dir, 'zzz_guardian.pth')
+                
+                print(f"DEBUG: Deploying hook from {src_pth} to {dest_pth}")
+                shutil.copyfile(src_pth, dest_pth)
+                print(f"SUCCESS: Hook deployed to {dest_pth}")
             else:
-                dest = site.getsitepackages()[0]
-            
-            src_pth = os.path.join(os.path.dirname(__file__), 'src', 'zzz_guardian.pth')
-            dest_pth = os.path.join(dest, 'zzz_guardian.pth')
-            
-            print(f"Deploying hook to {dest_pth}")
-            with open(src_pth, 'r') as f:
-                content = f.read()
-            with open(dest_pth, 'w') as f:
-                f.write(content)
+                print("ERROR: Could not find site-packages directory.")
         except Exception as e:
-            print(f"Warning: Could not auto-deploy .pth hook: {e}")
+            print(f"CRITICAL ERROR during .pth deployment: {e}")
 
 setup(
     name="guardian-pth",
