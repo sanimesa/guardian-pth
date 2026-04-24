@@ -15,7 +15,7 @@ Malicious Python packages often use `.pth` files to execute code the moment the 
 
 ### 1. Installation
 ```bash
-git clone https://github.com/shuvro/guardian-pth
+git clone https://github.com/sanimesa/guardian-pth
 cd guardian-pth
 pip install -r requirements.txt
 ```
