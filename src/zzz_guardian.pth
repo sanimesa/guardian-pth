@@ -1,1 +1,0 @@
-import sys; import os; _d=os.path.dirname(__file__); sys.path.insert(0, _d); import importlib, importlib.util; importlib.util.find_spec("guardian_pth") and importlib.import_module("guardian_pth.hook")._hydrate_shadow_env()
