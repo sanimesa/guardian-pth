@@ -13,6 +13,11 @@ setup(
     # Option A: Install sitecustomize.py as a top-level module.
     # This is loaded automatically by the interpreter on startup.
     py_modules=["sitecustomize"],
+    entry_points={
+        'console_scripts': [
+            'guardian-vault=guardian_pth.vault:main',
+        ],
+    },
     install_requires=[
         "cryptography>=42.0.0",
     ],

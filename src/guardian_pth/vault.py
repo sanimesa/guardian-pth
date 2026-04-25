@@ -104,14 +104,14 @@ def import_from_env(passphrase: str, vault_path: str, env_path: str, use_hw_bind
     update_vault(passphrase, vault_path, secrets, use_hw_binding=use_hw_binding)
     return len(secrets)
 
-if __name__ == "__main__":
+def main():
     import sys
     if len(sys.argv) < 5:
         print("Usage:")
-        print("  python vault.py encrypt <passphrase> <path> <json_secrets> [--hw-bind]")
-        print("  python vault.py update  <passphrase> <path> <json_secrets> [--hw-bind]")
-        print("  python vault.py import  <passphrase> <path> <env_file_path> [--hw-bind]")
-        print("  python vault.py decrypt <passphrase> <path>")
+        print("  guardian-vault encrypt <passphrase> <path> <json_secrets> [--hw-bind]")
+        print("  guardian-vault update  <passphrase> <path> <json_secrets> [--hw-bind]")
+        print("  guardian-vault import  <passphrase> <path> <env_file_path> [--hw-bind]")
+        print("  guardian-vault decrypt <passphrase> <path>")
         sys.exit(1)
         
     action, pw, path = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -131,3 +131,6 @@ if __name__ == "__main__":
         print(f"Imported {count} secrets from {target} into {path}")
     elif action == "decrypt":
         print(decrypt_secrets(pw, path))
+
+if __name__ == "__main__":
+    main()
